@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Search } from "lucide-react";
 import { institutionTypes, degreeLevels } from "@/lib/constants";
 import { Field, Input, Select } from "@/components/ui/field";
@@ -36,8 +36,59 @@ function uniq(values: string[]) {
   return Array.from(new Set(values.filter(Boolean))).sort();
 }
 
+const pageSize = 24;
+
+function pageItems<T>(items: T[], page: number) {
+  const start = (page - 1) * pageSize;
+  return items.slice(start, start + pageSize);
+}
+
+function PaginationControls({
+  page,
+  total,
+  onPageChange
+}: {
+  page: number;
+  total: number;
+  onPageChange: (page: number) => void;
+}) {
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  const start = total ? (page - 1) * pageSize + 1 : 0;
+  const end = Math.min(page * pageSize, total);
+
+  if (totalPages <= 1) {
+    return <p className="text-sm font-semibold text-slate-500">{total} results</p>;
+  }
+
+  return (
+    <div className="flex flex-col gap-3 rounded-lg border border-slate-200 bg-white p-3 sm:flex-row sm:items-center sm:justify-between">
+      <p className="text-sm font-semibold text-slate-500">Showing {start}-{end} of {total}</p>
+      <div className="flex items-center gap-2">
+        <button
+          className="focus-ring h-9 rounded-md border border-slate-200 px-3 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-50"
+          disabled={page <= 1}
+          onClick={() => onPageChange(page - 1)}
+          type="button"
+        >
+          Previous
+        </button>
+        <span className="min-w-24 text-center text-sm font-bold text-slate-700">Page {page} of {totalPages}</span>
+        <button
+          className="focus-ring h-9 rounded-md border border-slate-200 px-3 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-50"
+          disabled={page >= totalPages}
+          onClick={() => onPageChange(page + 1)}
+          type="button"
+        >
+          Next
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export function UniversityDirectory({ universities }: { universities: University[] }) {
   const [filters, setFilters] = useState({ q: "", region: "", state: "", city: "", type: "" });
+  const [page, setPage] = useState(1);
   const states = uniq(universities.map((item) => item.state));
   const cities = uniq(universities.map((item) => item.city));
   const filtered = universities.filter((uni) => {
@@ -50,6 +101,8 @@ export function UniversityDirectory({ universities }: { universities: University
       (!filters.type || uni.type === filters.type)
     );
   });
+  const paginated = pageItems(filtered, page);
+  useEffect(() => setPage(1), [filters.q, filters.region, filters.state, filters.city, filters.type]);
 
   return (
     <div className="space-y-6">
@@ -79,9 +132,10 @@ export function UniversityDirectory({ universities }: { universities: University
           </Select>
         </Field>
       </div>
+      <PaginationControls page={page} total={filtered.length} onPageChange={setPage} />
       {filtered.length ? (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {filtered.map((university) => <UniversityCard key={university.id} university={university} />)}
+          {paginated.map((university) => <UniversityCard key={university.id} university={university} />)}
         </div>
       ) : (
         <div className="rounded-lg border border-dashed border-slate-300 p-10 text-center text-slate-500">No universities match these filters.</div>
@@ -92,6 +146,7 @@ export function UniversityDirectory({ universities }: { universities: University
 
 export function ProgramDirectory({ programs }: { programs: Program[] }) {
   const [filters, setFilters] = useState({ q: "", region: "", state: "", city: "", university: "", type: "", degree: "", field: "", status: "", sort: "az" });
+  const [page, setPage] = useState(1);
   const states = uniq(programs.map((item) => item.university.state));
   const cities = uniq(programs.map((item) => item.university.city));
   const universities = uniq(programs.map((item) => item.university.name));
@@ -130,6 +185,8 @@ export function ProgramDirectory({ programs }: { programs: Program[] }) {
       return a.name.localeCompare(b.name);
     });
   }, [filters, programs]);
+  const paginated = pageItems(filtered, page);
+  useEffect(() => setPage(1), [filters.q, filters.region, filters.state, filters.city, filters.university, filters.type, filters.degree, filters.field, filters.status, filters.sort]);
 
   return (
     <div className="space-y-6">
@@ -188,9 +245,10 @@ export function ProgramDirectory({ programs }: { programs: Program[] }) {
           </Select>
         </Field>
       </div>
+      <PaginationControls page={page} total={filtered.length} onPageChange={setPage} />
       {filtered.length ? (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {filtered.map((program) => <ProgramCard key={program.id} program={program} />)}
+          {paginated.map((program) => <ProgramCard key={program.id} program={program} />)}
         </div>
       ) : (
         <div className="rounded-lg border border-dashed border-slate-300 p-10 text-center text-slate-500">No programs match these filters.</div>

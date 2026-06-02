@@ -4,18 +4,19 @@ import { institutionTypes, degreeLevels } from "@/lib/constants";
 import { ApplicationCard, ProgramCard, ServiceCard, UniversityCard } from "@/components/cards";
 import { StartApplicationButton } from "@/components/start-application";
 import { LinkButton } from "@/components/ui/button";
+import { AnimatedCounter } from "@/components/animated-counter";
 
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const { universities, programs, heroApplications, services } = await getHomeData();
+  const { universities, programs, heroApplications, services, counts } = await getHomeData();
   const states = Array.from(new Set(universities.map((item) => item.state))).sort();
   const cities = Array.from(new Set(universities.map((item) => item.city))).sort();
   const fields = Array.from(new Set(programs.map((item) => item.fieldOfStudy))).sort();
   const stats = [
-    { label: "Universities", value: universities.length, icon: Building2 },
-    { label: "Programs", value: programs.length, icon: BookOpen },
-    { label: "Open calls", value: heroApplications.length, icon: Globe2 }
+    { label: "Universities", value: counts.universities, icon: Building2 },
+    { label: "Programs", value: counts.programs, icon: BookOpen },
+    { label: "Open calls", value: counts.openApplications, icon: Globe2 }
   ];
 
   return (
@@ -96,7 +97,7 @@ export default async function HomePage() {
           {stats.map(({ label, value, icon: Icon }) => (
             <div key={label} className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
               <Icon className="h-6 w-6 text-brand-green" />
-              <p className="mt-4 text-3xl font-black text-slate-950">{value}+</p>
+              <p className="mt-4 text-3xl font-black text-slate-950"><AnimatedCounter value={value} /></p>
               <p className="text-sm font-semibold text-slate-500">{label} indexed for discovery</p>
             </div>
           ))}

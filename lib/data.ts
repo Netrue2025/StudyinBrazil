@@ -4,7 +4,12 @@ const emptyHomeData = {
   universities: [],
   programs: [],
   heroApplications: [],
-  services: []
+  services: [],
+  counts: {
+    universities: 0,
+    programs: 0,
+    openApplications: 0
+  }
 };
 
 function logDataError(scope: string, error: unknown) {
@@ -13,7 +18,7 @@ function logDataError(scope: string, error: unknown) {
 
 export async function getHomeData() {
   try {
-    const [universities, programs, heroApplications, services] = await Promise.all([
+    const [universities, programs, heroApplications, services, counts] = await Promise.all([
       prisma.university.findMany({
         include: { programs: true },
         orderBy: { name: "asc" },
@@ -30,9 +35,18 @@ export async function getHomeData() {
         orderBy: [{ deadline: "asc" }, { createdAt: "desc" }],
         take: 6
       }),
-      prisma.service.findMany({ where: { isActive: true }, orderBy: { price: "asc" }, take: 4 })
+      prisma.service.findMany({ where: { isActive: true }, orderBy: { price: "asc" }, take: 4 }),
+      Promise.all([
+        prisma.university.count(),
+        prisma.program.count(),
+        prisma.openApplication.count()
+      ]).then(([universitiesCount, programsCount, openApplicationsCount]) => ({
+        universities: universitiesCount,
+        programs: programsCount,
+        openApplications: openApplicationsCount
+      }))
     ]);
-    return { universities, programs, heroApplications, services };
+    return { universities, programs, heroApplications, services, counts };
   } catch (error) {
     logDataError("home", error);
     return emptyHomeData;

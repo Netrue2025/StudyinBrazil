@@ -4,14 +4,22 @@ import { deleteUniversityState } from "@/lib/admin-actions";
 import { AdminPageHeader } from "@/components/admin/admin-shell";
 import { DeleteRecordForm } from "@/components/admin/form-controls";
 import { UniversityForm } from "@/components/admin/university-form";
+import { AdminPagination } from "@/components/admin/admin-pagination";
 
-export default async function AdminUniversitiesPage() {
+const adminPageSize = 50;
+
+export default async function AdminUniversitiesPage({ searchParams }: { searchParams: { page?: string } }) {
   requireAdmin();
-  const universities = await prisma.university.findMany({ orderBy: { name: "asc" } });
+  const page = Math.max(1, Number(searchParams.page || 1));
+  const [universities, total] = await Promise.all([
+    prisma.university.findMany({ orderBy: { name: "asc" }, skip: (page - 1) * adminPageSize, take: adminPageSize }),
+    prisma.university.count()
+  ]);
   return (
     <>
       <AdminPageHeader title="Universities" eyebrow="Manage directory" />
       <UniversityForm />
+      <AdminPagination page={page} total={total} pageSize={adminPageSize} basePath="/admin/universities" />
       <div className="mt-8 grid gap-4">
         {universities.map((university) => (
           <details key={university.id} className="rounded-lg border border-slate-200 bg-white shadow-sm">

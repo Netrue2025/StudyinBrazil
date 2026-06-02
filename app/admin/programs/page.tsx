@@ -4,17 +4,23 @@ import { deleteProgramState } from "@/lib/admin-actions";
 import { AdminPageHeader } from "@/components/admin/admin-shell";
 import { DeleteRecordForm } from "@/components/admin/form-controls";
 import { ProgramForm } from "@/components/admin/program-form";
+import { AdminPagination } from "@/components/admin/admin-pagination";
 
-export default async function AdminProgramsPage() {
+const adminPageSize = 50;
+
+export default async function AdminProgramsPage({ searchParams }: { searchParams: { page?: string } }) {
   requireAdmin();
-  const [programs, universities] = await Promise.all([
-    prisma.program.findMany({ include: { university: true }, orderBy: { name: "asc" } }),
-    prisma.university.findMany({ orderBy: { name: "asc" } })
+  const page = Math.max(1, Number(searchParams.page || 1));
+  const [programs, universities, total] = await Promise.all([
+    prisma.program.findMany({ include: { university: true }, orderBy: { name: "asc" }, skip: (page - 1) * adminPageSize, take: adminPageSize }),
+    prisma.university.findMany({ orderBy: { name: "asc" } }),
+    prisma.program.count()
   ]);
   return (
     <>
       <AdminPageHeader title="Programs" eyebrow="Manage courses" />
       <ProgramForm universities={universities} />
+      <AdminPagination page={page} total={total} pageSize={adminPageSize} basePath="/admin/programs" />
       <div className="mt-8 grid gap-4">
         {programs.map((program) => (
           <details key={program.id} className="rounded-lg border border-slate-200 bg-white shadow-sm">
