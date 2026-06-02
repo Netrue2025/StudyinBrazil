@@ -30,7 +30,7 @@ export function ServiceForm({ service }: { service?: ServiceFormValue }) {
         <Field label="Title" className="xl:col-span-2"><Input name="title" defaultValue={service?.title} required /></Field>
         <Field label="Slug"><Input name="slug" defaultValue={service?.slug} placeholder="leave blank to auto-generate" /></Field>
         <Field label="Price"><Input name="price" type="number" step="0.01" min="0" defaultValue={service ? service.price : ""} required /></Field>
-        <Field label="Currency"><Input name="currency" defaultValue={service?.currency || "USD"} /></Field>
+        <Field label="Currency"><Input name="currency" defaultValue={service?.currency || "USD"} placeholder="USD, NGN, BRL" /></Field>
         <Field label="Delivery time"><Input name="deliveryTime" defaultValue={service?.deliveryTime} required /></Field>
         <label className="mt-8 flex items-center gap-2 text-sm font-semibold text-slate-700">
           <input type="checkbox" name="isActive" defaultChecked={service?.isActive ?? true} className="h-4 w-4 accent-brand-green" />

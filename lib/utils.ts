@@ -5,12 +5,25 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+export function normalizeCurrency(currency?: string | null) {
+  const value = (currency || "USD").trim().toUpperCase();
+  if (["N", "₦", "NAIRA"].includes(value)) return "NGN";
+  if (value === "$") return "USD";
+  if (value === "R$" || value === "REAL" || value === "REAIS") return "BRL";
+  return /^[A-Z]{3}$/.test(value) ? value : "USD";
+}
+
 export function money(amount: number, currency = "USD") {
-  return new Intl.NumberFormat("en", {
-    style: "currency",
-    currency,
-    maximumFractionDigits: 0
-  }).format(amount / 100);
+  const normalizedCurrency = normalizeCurrency(currency);
+  try {
+    return new Intl.NumberFormat("en", {
+      style: "currency",
+      currency: normalizedCurrency,
+      maximumFractionDigits: 0
+    }).format(amount / 100);
+  } catch {
+    return `${normalizedCurrency} ${Math.round(amount / 100).toLocaleString("en")}`;
+  }
 }
 
 export function parseList(value?: string | null): string[] {
