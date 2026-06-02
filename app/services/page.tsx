@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { getServices } from "@/lib/data";
 import { ServiceCard } from "@/components/cards";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Services",
   description: "Paid application support services for CVs, research proposals, statements, document review, and full application support."

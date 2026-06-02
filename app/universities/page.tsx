@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { getDirectoryData } from "@/lib/data";
 import { UniversityDirectory } from "@/components/directory-filters";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Universities",
   description: "Search Brazilian universities by state, city, region, and institution type."

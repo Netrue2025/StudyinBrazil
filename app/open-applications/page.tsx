@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { getOpenApplications } from "@/lib/data";
 import { ApplicationCard } from "@/components/cards";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Open Applications",
   description: "Currently open Brazilian university and postgraduate application opportunities."

@@ -5,6 +5,8 @@ import { ApplicationCard, ProgramCard, ServiceCard, UniversityCard } from "@/com
 import { StartApplicationButton } from "@/components/start-application";
 import { LinkButton } from "@/components/ui/button";
 
+export const dynamic = "force-dynamic";
+
 export default async function HomePage() {
   const { universities, programs, heroApplications, services } = await getHomeData();
   const states = Array.from(new Set(universities.map((item) => item.state))).sort();

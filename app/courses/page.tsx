@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { getDirectoryData } from "@/lib/data";
 import { ProgramDirectory } from "@/components/directory-filters";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Courses and Programs",
   description: "Search MSc, PhD, professional master's, postgraduate, and undergraduate programs in Brazil."
