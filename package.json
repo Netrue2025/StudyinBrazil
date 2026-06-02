@@ -9,8 +9,7 @@
     "start": "next start",
     "lint": "next lint",
     "db:generate": "prisma generate",
-    "db:migrate": "prisma migrate dev",
-    "db:apply-sqlite": "node scripts/apply-sqlite-migration.cjs",
+    "db:push": "prisma db push",
     "db:seed": "prisma db seed",
     "db:studio": "prisma studio"
   },

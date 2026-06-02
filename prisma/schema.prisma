@@ -3,12 +3,12 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "mongodb"
   url      = env("DATABASE_URL")
 }
 
 model User {
-  id        String   @id @default(cuid())
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
   email     String   @unique
   name      String?
   role      String   @default("ADMIN")
@@ -17,7 +17,7 @@ model User {
 }
 
 model University {
-  id          String            @id @default(cuid())
+  id          String            @id @default(auto()) @map("_id") @db.ObjectId
   name        String
   acronym     String
   region      String
@@ -38,9 +38,9 @@ model University {
 }
 
 model Program {
-  id                String            @id @default(cuid())
+  id                String            @id @default(auto()) @map("_id") @db.ObjectId
   name              String
-  universityId      String
+  universityId      String            @db.ObjectId
   degreeLevel       String
   fieldOfStudy      String
   description       String
@@ -57,10 +57,10 @@ model Program {
 }
 
 model OpenApplication {
-  id                String      @id @default(cuid())
+  id                String      @id @default(auto()) @map("_id") @db.ObjectId
   title             String
-  universityId      String
-  programId         String?
+  universityId      String      @db.ObjectId
+  programId         String?     @db.ObjectId
   summary           String
   fullDescription   String
   requirements      String      @default("[]")
@@ -83,7 +83,7 @@ model OpenApplication {
 }
 
 model ApplicationSubmission {
-  id                  String             @id @default(cuid())
+  id                  String             @id @default(auto()) @map("_id") @db.ObjectId
   fullName            String
   email               String
   phone               String
@@ -110,8 +110,8 @@ model ApplicationSubmission {
 }
 
 model UploadedDocument {
-  id                      String                @id @default(cuid())
-  applicationSubmissionId String
+  id                      String                @id @default(auto()) @map("_id") @db.ObjectId
+  applicationSubmissionId String                @db.ObjectId
   documentType            String
   fileUrl                 String
   fileName                String
@@ -120,7 +120,7 @@ model UploadedDocument {
 }
 
 model Service {
-  id           String         @id @default(cuid())
+  id           String         @id @default(auto()) @map("_id") @db.ObjectId
   title        String
   slug         String         @unique
   description  String
@@ -135,8 +135,8 @@ model Service {
 }
 
 model ServiceOrder {
-  id            String    @id @default(cuid())
-  serviceId     String
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
+  serviceId     String    @db.ObjectId
   fullName      String
   email         String
   phone         String
@@ -154,8 +154,8 @@ model ServiceOrder {
 }
 
 model Payment {
-  id                String       @id @default(cuid())
-  serviceOrderId    String
+  id                String       @id @default(auto()) @map("_id") @db.ObjectId
+  serviceOrderId    String       @db.ObjectId
   amount            Int
   currency          String
   provider          String
@@ -168,7 +168,7 @@ model Payment {
 }
 
 model SiteSetting {
-  id        String   @id @default(cuid())
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
   key       String   @unique
   value     String
   createdAt DateTime @default(now())
