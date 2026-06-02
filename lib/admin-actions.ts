@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { loginAdmin, logoutAdmin } from "@/lib/auth";
 import { slugify } from "@/lib/utils";
@@ -124,11 +125,14 @@ export async function deleteOpenApplication(formData: FormData) {
 export async function saveService(formData: FormData) {
   const id = value(formData, "id");
   const title = value(formData, "title");
+  const price = Number(value(formData, "price") || 0);
+  if (!title) throw new Error("Service title is required.");
+  if (!Number.isFinite(price) || price < 0) throw new Error("Enter a valid service price.");
   const data = {
     title,
     slug: value(formData, "slug") || slugify(title),
     description: value(formData, "description"),
-    price: Math.round(Number(value(formData, "price") || 0) * 100),
+    price: Math.round(price * 100),
     currency: value(formData, "currency") || "USD",
     deliveryTime: value(formData, "deliveryTime"),
     includes: listValue(formData, "includes"),
@@ -138,6 +142,25 @@ export async function saveService(formData: FormData) {
   else await prisma.service.create({ data });
   revalidatePath("/admin/services");
   revalidatePath("/services");
+}
+
+export async function saveServiceState(
+  _previousState: { ok: boolean; message: string },
+  formData: FormData
+) {
+  try {
+    await saveService(formData);
+    return { ok: true, message: "Service saved successfully." };
+  } catch (error) {
+    console.error("[StudyinBrazil service save error]", error);
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+      return { ok: false, message: "A service with this slug already exists. Use a unique slug or edit the existing service." };
+    }
+    if (error instanceof Error && error.message) {
+      return { ok: false, message: error.message };
+    }
+    return { ok: false, message: "Service save failed. Please try again." };
+  }
 }
 
 export async function deleteService(formData: FormData) {
