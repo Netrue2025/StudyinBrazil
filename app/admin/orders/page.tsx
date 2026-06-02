@@ -1,12 +1,9 @@
 import { requireAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { updateOrderStatus } from "@/lib/admin-actions";
 import { money } from "@/lib/utils";
-import { paymentStatuses, serviceOrderStatuses } from "@/lib/constants";
 import { AdminPageHeader } from "@/components/admin/admin-shell";
-import { Button } from "@/components/ui/button";
-import { Field, Select, Textarea } from "@/components/ui/field";
 import { Badge } from "@/components/ui/badge";
+import { OrderStatusForm } from "@/components/admin/status-forms";
 
 export default async function AdminOrdersPage() {
   requireAdmin();
@@ -29,13 +26,7 @@ export default async function AdminOrdersPage() {
               <p className="text-2xl font-black text-brand-green">{money(order.service.price, order.service.currency)}</p>
             </div>
             <p className="mt-4 text-sm text-slate-600">{order.notes || "No client notes."}</p>
-            <form action={updateOrderStatus} className="mt-5 grid gap-4 md:grid-cols-[180px_180px_1fr_auto] md:items-end">
-              <input type="hidden" name="id" value={order.id} />
-              <Field label="Order status"><Select name="status" defaultValue={order.status}>{serviceOrderStatuses.map((status) => <option key={status}>{status}</option>)}</Select></Field>
-              <Field label="Payment status"><Select name="paymentStatus" defaultValue={order.paymentStatus}>{paymentStatuses.map((status) => <option key={status}>{status}</option>)}</Select></Field>
-              <Field label="Admin notes"><Textarea name="adminNotes" defaultValue={order.adminNotes || ""} /></Field>
-              <Button>Update</Button>
-            </form>
+            <OrderStatusForm id={order.id} status={order.status} paymentStatus={order.paymentStatus} adminNotes={order.adminNotes} />
           </div>
         ))}
       </div>

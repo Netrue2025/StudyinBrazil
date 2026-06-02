@@ -29,6 +29,15 @@ function dateValue(formData: FormData, key: string) {
   return raw ? new Date(raw) : null;
 }
 
+function actionErrorMessage(error: unknown, fallback: string) {
+  console.error("[StudyinBrazil admin action error]", error);
+  if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+    return "A record with this unique value already exists.";
+  }
+  if (error instanceof Error && error.message) return error.message;
+  return fallback;
+}
+
 export async function loginAction(formData: FormData) {
   const ok = loginAdmin(value(formData, "password"));
   if (!ok) redirect("/admin/login?error=1");
@@ -59,10 +68,34 @@ export async function saveUniversity(formData: FormData) {
   revalidatePath("/universities");
 }
 
+export async function saveUniversityState(
+  _previousState: { ok: boolean; message: string },
+  formData: FormData
+) {
+  try {
+    await saveUniversity(formData);
+    return { ok: true, message: "University saved successfully." };
+  } catch (error) {
+    return { ok: false, message: actionErrorMessage(error, "University save failed. Please try again.") };
+  }
+}
+
 export async function deleteUniversity(formData: FormData) {
   await prisma.university.delete({ where: { id: value(formData, "id") } });
   revalidatePath("/admin/universities");
   revalidatePath("/universities");
+}
+
+export async function deleteUniversityState(
+  _previousState: { ok: boolean; message: string },
+  formData: FormData
+) {
+  try {
+    await deleteUniversity(formData);
+    return { ok: true, message: "University deleted successfully." };
+  } catch (error) {
+    return { ok: false, message: actionErrorMessage(error, "University delete failed. Please try again.") };
+  }
 }
 
 export async function saveProgram(formData: FormData) {
@@ -82,10 +115,34 @@ export async function saveProgram(formData: FormData) {
   revalidatePath("/courses");
 }
 
+export async function saveProgramState(
+  _previousState: { ok: boolean; message: string },
+  formData: FormData
+) {
+  try {
+    await saveProgram(formData);
+    return { ok: true, message: "Program saved successfully." };
+  } catch (error) {
+    return { ok: false, message: actionErrorMessage(error, "Program save failed. Please try again.") };
+  }
+}
+
 export async function deleteProgram(formData: FormData) {
   await prisma.program.delete({ where: { id: value(formData, "id") } });
   revalidatePath("/admin/programs");
   revalidatePath("/courses");
+}
+
+export async function deleteProgramState(
+  _previousState: { ok: boolean; message: string },
+  formData: FormData
+) {
+  try {
+    await deleteProgram(formData);
+    return { ok: true, message: "Program deleted successfully." };
+  } catch (error) {
+    return { ok: false, message: actionErrorMessage(error, "Program delete failed. Please try again.") };
+  }
 }
 
 export async function saveOpenApplication(formData: FormData) {
@@ -115,11 +172,35 @@ export async function saveOpenApplication(formData: FormData) {
   revalidatePath("/");
 }
 
+export async function saveOpenApplicationState(
+  _previousState: { ok: boolean; message: string },
+  formData: FormData
+) {
+  try {
+    await saveOpenApplication(formData);
+    return { ok: true, message: "Open application saved successfully." };
+  } catch (error) {
+    return { ok: false, message: actionErrorMessage(error, "Open application save failed. Please try again.") };
+  }
+}
+
 export async function deleteOpenApplication(formData: FormData) {
   await prisma.openApplication.delete({ where: { id: value(formData, "id") } });
   revalidatePath("/admin/open-applications");
   revalidatePath("/open-applications");
   revalidatePath("/");
+}
+
+export async function deleteOpenApplicationState(
+  _previousState: { ok: boolean; message: string },
+  formData: FormData
+) {
+  try {
+    await deleteOpenApplication(formData);
+    return { ok: true, message: "Open application deleted successfully." };
+  } catch (error) {
+    return { ok: false, message: actionErrorMessage(error, "Open application delete failed. Please try again.") };
+  }
 }
 
 export async function saveService(formData: FormData) {
@@ -169,12 +250,36 @@ export async function deleteService(formData: FormData) {
   revalidatePath("/services");
 }
 
+export async function deleteServiceState(
+  _previousState: { ok: boolean; message: string },
+  formData: FormData
+) {
+  try {
+    await deleteService(formData);
+    return { ok: true, message: "Service deleted successfully." };
+  } catch (error) {
+    return { ok: false, message: actionErrorMessage(error, "Service delete failed. Please try again.") };
+  }
+}
+
 export async function updateSubmissionStatus(formData: FormData) {
   await prisma.applicationSubmission.update({
     where: { id: value(formData, "id") },
     data: { status: value(formData, "status"), internalNotes: value(formData, "internalNotes") || null }
   });
   revalidatePath("/admin/submissions");
+}
+
+export async function updateSubmissionStatusState(
+  _previousState: { ok: boolean; message: string },
+  formData: FormData
+) {
+  try {
+    await updateSubmissionStatus(formData);
+    return { ok: true, message: "Submission updated successfully." };
+  } catch (error) {
+    return { ok: false, message: actionErrorMessage(error, "Submission update failed. Please try again.") };
+  }
 }
 
 export async function updateOrderStatus(formData: FormData) {
@@ -187,6 +292,18 @@ export async function updateOrderStatus(formData: FormData) {
     }
   });
   revalidatePath("/admin/orders");
+}
+
+export async function updateOrderStatusState(
+  _previousState: { ok: boolean; message: string },
+  formData: FormData
+) {
+  try {
+    await updateOrderStatus(formData);
+    return { ok: true, message: "Order updated successfully." };
+  } catch (error) {
+    return { ok: false, message: actionErrorMessage(error, "Order update failed. Please try again.") };
+  }
 }
 
 export async function saveSetting(formData: FormData) {

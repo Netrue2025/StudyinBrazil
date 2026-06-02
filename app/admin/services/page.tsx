@@ -1,18 +1,32 @@
 import { requireAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { deleteService } from "@/lib/admin-actions";
+import { deleteServiceState } from "@/lib/admin-actions";
 import { money } from "@/lib/utils";
 import { AdminPageHeader } from "@/components/admin/admin-shell";
-import { Button } from "@/components/ui/button";
+import { DeleteRecordForm } from "@/components/admin/form-controls";
 import { ServiceForm } from "@/components/admin/service-form";
 
 export default async function AdminServicesPage() {
   requireAdmin();
-  const services = await prisma.service.findMany({ orderBy: { title: "asc" } });
+  let services: Awaited<ReturnType<typeof prisma.service.findMany>> = [];
+  let loadError = "";
+
+  try {
+    services = await prisma.service.findMany({ orderBy: { title: "asc" } });
+  } catch (error) {
+    console.error("[StudyinBrazil admin services load error]", error);
+    loadError = "Services could not be loaded from the database. You can still try creating a new service below.";
+  }
+
   return (
     <>
       <AdminPageHeader title="Service Products" eyebrow="Manage paid services" />
       <ServiceForm />
+      {loadError ? (
+        <div className="mt-5 rounded-lg border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-700">
+          {loadError}
+        </div>
+      ) : null}
       <div className="mt-8 grid gap-4">
         {services.map((service) => (
           <details key={service.id} className="rounded-lg border border-slate-200 bg-white shadow-sm">
@@ -39,10 +53,7 @@ export default async function AdminServicesPage() {
                   isActive: service.isActive
                 }}
               />
-              <form action={deleteService} className="mt-3">
-                <input type="hidden" name="id" value={service.id} />
-                <Button variant="outline" className="text-red-700 hover:border-red-200 hover:text-red-700">Delete</Button>
-              </form>
+              <DeleteRecordForm id={service.id} action={deleteServiceState} label="Delete service" />
             </div>
           </details>
         ))}

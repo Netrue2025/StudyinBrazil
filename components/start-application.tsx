@@ -16,10 +16,12 @@ export function ApplicationProvider({ children }: { children: React.ReactNode })
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [error, setError] = useState("");
 
   async function submit(formData: FormData) {
     setIsSubmitting(true);
     setSuccess(false);
+    setError("");
     const res = await fetch("/api/applications", {
       method: "POST",
       body: formData
@@ -29,7 +31,7 @@ export function ApplicationProvider({ children }: { children: React.ReactNode })
       setSuccess(true);
       setTimeout(() => setOpen(false), 1800);
     } else {
-      alert("Something went wrong. Please check the form and try again.");
+      setError("Application submission failed. Please check the form and try again.");
     }
   }
 
@@ -119,8 +121,14 @@ export function ApplicationProvider({ children }: { children: React.ReactNode })
                     <Textarea name="notes" placeholder="Tell us about your preferred course, timeline, scholarship interest, or any special concern." />
                   </Field>
                   <div className="sticky bottom-0 flex justify-end border-t border-slate-100 bg-white py-4">
+                    {error ? <p className="mr-auto self-center text-sm font-semibold text-red-700">{error}</p> : null}
                     <Button type="submit" disabled={isSubmitting}>
-                      {isSubmitting ? "Submitting..." : "Submit Application"}
+                      {isSubmitting ? (
+                        <>
+                          <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                          Submitting...
+                        </>
+                      ) : "Submit Application"}
                       <ArrowRight className="h-4 w-4" />
                     </Button>
                   </div>

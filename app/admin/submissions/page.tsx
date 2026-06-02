@@ -1,12 +1,12 @@
 import { requireAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { updateSubmissionStatus } from "@/lib/admin-actions";
 import { parseList } from "@/lib/utils";
 import { submissionStatuses } from "@/lib/constants";
 import { AdminPageHeader } from "@/components/admin/admin-shell";
 import { Button } from "@/components/ui/button";
-import { Field, Select, Textarea } from "@/components/ui/field";
+import { Select } from "@/components/ui/field";
 import { Badge } from "@/components/ui/badge";
+import { SubmissionStatusForm } from "@/components/admin/status-forms";
 
 export default async function AdminSubmissionsPage({ searchParams }: { searchParams: { status?: string } }) {
   requireAdmin();
@@ -59,14 +59,7 @@ export default async function AdminSubmissionsPage({ searchParams }: { searchPar
                 )) : <span className="text-sm text-slate-500">No documents uploaded.</span>}
               </div>
             </div>
-            <form action={updateSubmissionStatus} className="mt-5 grid gap-4 md:grid-cols-[220px_1fr_auto] md:items-end">
-              <input type="hidden" name="id" value={submission.id} />
-              <Field label="Status">
-                <Select name="status" defaultValue={submission.status}>{submissionStatuses.map((status) => <option key={status}>{status}</option>)}</Select>
-              </Field>
-              <Field label="Internal notes"><Textarea name="internalNotes" defaultValue={submission.internalNotes || ""} /></Field>
-              <Button>Update</Button>
-            </form>
+            <SubmissionStatusForm id={submission.id} status={submission.status} internalNotes={submission.internalNotes} />
           </div>
         ))}
       </div>

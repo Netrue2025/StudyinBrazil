@@ -1,9 +1,9 @@
 "use client";
 
-import { useFormState, useFormStatus } from "react-dom";
+import { useFormState } from "react-dom";
 import { saveSettingState } from "@/lib/admin-actions";
-import { Button } from "@/components/ui/button";
 import { Field, Input } from "@/components/ui/field";
+import { PendingButton } from "@/components/admin/form-controls";
 
 const initialState = { ok: false, message: "" };
 
@@ -15,7 +15,7 @@ export function SettingForm({ settingKey, value }: { settingKey: string; value: 
       <input type="hidden" name="key" value={settingKey} />
       <Field label="Key"><Input value={settingKey} readOnly /></Field>
       <Field label="Value"><Input name="value" defaultValue={value} /></Field>
-      <SubmitButton />
+      <PendingButton pendingText="Saving...">Save</PendingButton>
       {state.message ? (
         <p className={state.ok ? "text-sm font-semibold text-brand-green md:col-span-3" : "text-sm font-semibold text-red-700 md:col-span-3"}>
           {state.message}
@@ -23,9 +23,4 @@ export function SettingForm({ settingKey, value }: { settingKey: string; value: 
       ) : null}
     </form>
   );
-}
-
-function SubmitButton() {
-  const { pending } = useFormStatus();
-  return <Button disabled={pending}>{pending ? "Saving..." : "Save"}</Button>;
 }

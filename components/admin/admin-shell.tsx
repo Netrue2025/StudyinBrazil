@@ -1,6 +1,5 @@
 import Link from "next/link";
-import { logoutAction } from "@/lib/admin-actions";
-import { Button } from "@/components/ui/button";
+import { LogoutForm } from "@/components/admin/logout-form";
 
 const adminNav = [
   ["Dashboard", "/admin"],
@@ -25,9 +24,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
                 {label}
               </Link>
             ))}
-            <form action={logoutAction}>
-              <Button variant="outline" className="h-9 px-3">Logout</Button>
-            </form>
+            <LogoutForm />
           </nav>
         </div>
       </header>

@@ -1,10 +1,10 @@
 "use client";
 
-import { useFormState, useFormStatus } from "react-dom";
+import { useFormState } from "react-dom";
 import { saveServiceState } from "@/lib/admin-actions";
 import { parseList } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
 import { Field, Input, Textarea } from "@/components/ui/field";
+import { FormFeedback, PendingButton } from "@/components/admin/form-controls";
 
 type ServiceFormValue = {
   id?: string;
@@ -40,18 +40,9 @@ export function ServiceForm({ service }: { service?: ServiceFormValue }) {
         <Field label="Includes" className="md:col-span-2"><Textarea name="includes" defaultValue={parseList(service?.includes).join("\n")} /></Field>
       </div>
       <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center">
-        <SubmitButton label={service?.id ? "Save Service" : "Create Service"} />
-        {state.message ? (
-          <p className={state.ok ? "text-sm font-semibold text-brand-green" : "text-sm font-semibold text-red-700"}>
-            {state.message}
-          </p>
-        ) : null}
+        <PendingButton>{service?.id ? "Save Service" : "Create Service"}</PendingButton>
+        <FormFeedback state={state} />
       </div>
     </form>
   );
-}
-
-function SubmitButton({ label }: { label: string }) {
-  const { pending } = useFormStatus();
-  return <Button disabled={pending}>{pending ? "Saving..." : label}</Button>;
 }
