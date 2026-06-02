@@ -1,10 +1,13 @@
 import { NextResponse } from "next/server";
 import { mkdir, writeFile } from "fs/promises";
 import path from "path";
-import { prisma } from "@/lib/prisma";
 import { applicationSubmissionSchema } from "@/lib/validators";
 
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
 export async function POST(request: Request) {
+  const { prisma } = await import("@/lib/prisma");
   const formData = await request.formData();
   const supportNeeded = formData.getAll("supportNeeded").map(String);
 
