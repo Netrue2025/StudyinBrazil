@@ -29,6 +29,33 @@ if (!iesPath || !fs.existsSync(iesPath)) {
   process.exit(1);
 }
 
+function wait(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function withRetry(action, label, attempts = 4) {
+  let lastError;
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    try {
+      return await action();
+    } catch (error) {
+      lastError = error;
+      if (attempt === attempts) break;
+      const message = error?.message || "";
+      const isRetryable =
+        error?.code === "P2010" ||
+        message.includes("RetryableWriteError") ||
+        message.includes("TransientTransactionError") ||
+        message.includes("connection was aborted");
+      if (!isRetryable) break;
+      const delay = attempt * 1500;
+      console.warn(`${label} failed, retrying in ${delay}ms...`);
+      await wait(delay);
+    }
+  }
+  throw lastError;
+}
+
 function parseCsvLine(line) {
   const result = [];
   let current = "";
@@ -177,7 +204,10 @@ async function main() {
       iesToUniversityId.set(row.CO_IES, existingId);
       matchedInstitutionIds.add(existingId);
       if (shouldUpdateInstitutions) {
-        await prisma.university.update({ where: { id: existingId }, data });
+        await withRetry(
+          () => prisma.university.update({ where: { id: existingId }, data }),
+          `Updating institution ${row.CO_IES}`
+        );
         updatedInstitutions += 1;
       }
       return;
@@ -188,9 +218,13 @@ async function main() {
 
   if (newInstitutionRows.length) {
     console.log(`Creating ${newInstitutionRows.length} new institutions...`);
-    await prisma.university.createMany({
-      data: newInstitutionRows.map((item) => item.data)
-    });
+    await withRetry(
+      () =>
+        prisma.university.createMany({
+          data: newInstitutionRows.map((item) => item.data)
+        }),
+      "Creating institutions"
+    );
 
     const refreshed = await prisma.university.findMany({
       select: { id: true, name: true, acronym: true, state: true, city: true }
@@ -231,12 +265,16 @@ async function main() {
   const matchedIds = Array.from(matchedInstitutionIds);
 
   if (shouldReplaceImportedPrograms) {
-    const deleted = await prisma.program.deleteMany({
-      where: {
-        universityId: { in: matchedIds },
-        description: { contains: "Course imported from the 2024 Brazilian Higher Education Census microdata" }
-      }
-    });
+    const deleted = await withRetry(
+      () =>
+        prisma.program.deleteMany({
+          where: {
+            universityId: { in: matchedIds },
+            description: { contains: "Course imported from the 2024 Brazilian Higher Education Census microdata" }
+          }
+        }),
+      "Deleting imported programs"
+    );
     console.log(`Imported Censo programs deleted for this batch before re-import: ${deleted.count}`);
   }
 
@@ -255,7 +293,7 @@ async function main() {
 
   async function flushPrograms() {
     if (!pendingPrograms.length) return;
-    await prisma.program.createMany({ data: pendingPrograms });
+    await withRetry(() => prisma.program.createMany({ data: pendingPrograms }), "Creating programs");
     createdPrograms += pendingPrograms.length;
     pendingPrograms.length = 0;
   }

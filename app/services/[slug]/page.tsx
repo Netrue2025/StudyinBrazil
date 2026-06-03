@@ -17,6 +17,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
 
 export default async function ServicePaymentPage({ params }: { params: { slug: string } }) {
   let service = null;
+  const paymentProvider = process.env.PAYMENT_PROVIDER || process.env.PAYMENT_MODE || "manual";
   try {
     service = await prisma.service.findUnique({ where: { slug: params.slug } });
   } catch (error) {
@@ -40,7 +41,7 @@ export default async function ServicePaymentPage({ params }: { params: { slug: s
             {parseList(service.includes).map((item) => <li key={item} className="rounded-md bg-slate-50 px-4 py-3">{item}</li>)}
           </ul>
         </article>
-        <ServiceOrderForm serviceId={service.id} />
+        <ServiceOrderForm serviceId={service.id} provider={paymentProvider} />
       </div>
     </section>
   );

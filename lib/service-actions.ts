@@ -33,7 +33,14 @@ export async function createServiceOrderState(
     });
 
     const provider = getPaymentProvider();
-    const payment = await provider.createPayment({ serviceOrderId: order.id, amount: service.price, currency: service.currency });
+    const payment = await provider.createPayment({
+      serviceOrderId: order.id,
+      amount: service.price,
+      currency: service.currency,
+      customerEmail: order.email,
+      customerName: order.fullName,
+      description: service.title
+    });
 
     return {
       ok: true,
@@ -42,6 +49,12 @@ export async function createServiceOrderState(
     };
   } catch (error) {
     console.error("[StudyinBrazil service order error]", error);
+    if (error instanceof Error && error.message.includes("PAYSTACK_SECRET_KEY")) {
+      return { ok: false, message: "Paystack is not configured yet. Add PAYSTACK_SECRET_KEY and try again." };
+    }
+    if (error instanceof Error && error.message.includes("Paystack")) {
+      return { ok: false, message: error.message };
+    }
     return { ok: false, message: "Order creation failed. Please try again." };
   }
 }
