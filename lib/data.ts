@@ -5,6 +5,14 @@ const emptyHomeData = {
   programs: [],
   heroApplications: [],
   services: [],
+  filterOptions: {
+    regions: [],
+    states: [],
+    cities: [],
+    institutionTypes: [],
+    degreeLevels: [],
+    fields: []
+  },
   counts: {
     universities: 0,
     programs: 0,
@@ -16,12 +24,33 @@ function logDataError(scope: string, error: unknown) {
   console.error(`[StudyinBrazil data error] ${scope}`, error);
 }
 
+function cleanOptions(values: Array<string | null | undefined>) {
+  return Array.from(new Set(values.map((value) => String(value || "").trim()).filter(Boolean))).sort((a, b) =>
+    a.localeCompare(b)
+  );
+}
+
 export async function getHomeData() {
   try {
-    const [universities, programs, heroApplications, services, counts] = await Promise.all([
+    const universityCount = await prisma.university.count();
+    const featuredSkip = universityCount > 6 ? Math.floor(Math.random() * (universityCount - 6)) : 0;
+    const [
+      universities,
+      programs,
+      heroApplications,
+      services,
+      regionOptions,
+      stateOptions,
+      cityOptions,
+      typeOptions,
+      degreeOptions,
+      fieldOptions,
+      counts
+    ] = await Promise.all([
       prisma.university.findMany({
         include: { programs: true },
         orderBy: { name: "asc" },
+        skip: featuredSkip,
         take: 6
       }),
       prisma.program.findMany({
@@ -36,8 +65,32 @@ export async function getHomeData() {
         take: 6
       }),
       prisma.service.findMany({ where: { isActive: true }, orderBy: { price: "asc" }, take: 4 }),
+      prisma.university.findMany({
+        distinct: ["region"],
+        select: { region: true }
+      }),
+      prisma.university.findMany({
+        distinct: ["state"],
+        select: { state: true }
+      }),
+      prisma.university.findMany({
+        distinct: ["city"],
+        select: { city: true }
+      }),
+      prisma.university.findMany({
+        distinct: ["type"],
+        select: { type: true }
+      }),
+      prisma.program.findMany({
+        distinct: ["degreeLevel"],
+        select: { degreeLevel: true }
+      }),
+      prisma.program.findMany({
+        distinct: ["fieldOfStudy"],
+        select: { fieldOfStudy: true }
+      }),
       Promise.all([
-        prisma.university.count(),
+        Promise.resolve(universityCount),
         prisma.program.count(),
         prisma.openApplication.count()
       ]).then(([universitiesCount, programsCount, openApplicationsCount]) => ({
@@ -46,7 +99,15 @@ export async function getHomeData() {
         openApplications: openApplicationsCount
       }))
     ]);
-    return { universities, programs, heroApplications, services, counts };
+    const filterOptions = {
+      regions: cleanOptions(regionOptions.map((item) => item.region)),
+      states: cleanOptions(stateOptions.map((item) => item.state)),
+      cities: cleanOptions(cityOptions.map((item) => item.city)),
+      institutionTypes: cleanOptions(typeOptions.map((item) => item.type)),
+      degreeLevels: cleanOptions(degreeOptions.map((item) => item.degreeLevel)),
+      fields: cleanOptions(fieldOptions.map((item) => item.fieldOfStudy))
+    };
+    return { universities, programs, heroApplications, services, filterOptions, counts };
   } catch (error) {
     logDataError("home", error);
     return emptyHomeData;

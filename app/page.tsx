@@ -1,6 +1,5 @@
 import { ArrowRight, BookOpen, Building2, Globe2, Search } from "lucide-react";
 import { getHomeData } from "@/lib/data";
-import { institutionTypes, degreeLevels } from "@/lib/constants";
 import { ApplicationCard, ProgramCard, ServiceCard, UniversityCard } from "@/components/cards";
 import { StartApplicationButton } from "@/components/start-application";
 import { LinkButton } from "@/components/ui/button";
@@ -9,10 +8,7 @@ import { AnimatedCounter } from "@/components/animated-counter";
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const { universities, programs, heroApplications, services, counts } = await getHomeData();
-  const states = Array.from(new Set(universities.map((item) => item.state))).sort();
-  const cities = Array.from(new Set(universities.map((item) => item.city))).sort();
-  const fields = Array.from(new Set(programs.map((item) => item.fieldOfStudy))).sort();
+  const { universities, programs, heroApplications, services, filterOptions, counts } = await getHomeData();
   const stats = [
     { label: "Universities", value: counts.universities, icon: Building2 },
     { label: "Programs", value: counts.programs, icon: BookOpen },
@@ -45,26 +41,29 @@ export default async function HomePage() {
                 />
               </div>
               <div className="mt-3 grid gap-3 md:grid-cols-3">
-                <select name="region" className="focus-ring h-11 rounded-md border border-slate-200 px-3 text-sm"><option>North</option></select>
+                <select name="region" className="focus-ring h-11 rounded-md border border-slate-200 px-3 text-sm">
+                  <option value="">Region</option>
+                  {filterOptions.regions.map((region) => <option key={region}>{region}</option>)}
+                </select>
                 <select name="state" className="focus-ring h-11 rounded-md border border-slate-200 px-3 text-sm">
                   <option value="">State</option>
-                  {states.map((state) => <option key={state}>{state}</option>)}
+                  {filterOptions.states.map((state) => <option key={state}>{state}</option>)}
                 </select>
                 <select name="city" className="focus-ring h-11 rounded-md border border-slate-200 px-3 text-sm">
                   <option value="">City</option>
-                  {cities.map((city) => <option key={city}>{city}</option>)}
+                  {filterOptions.cities.map((city) => <option key={city}>{city}</option>)}
                 </select>
                 <select name="type" className="focus-ring h-11 rounded-md border border-slate-200 px-3 text-sm">
                   <option value="">University Type</option>
-                  {institutionTypes.map((type) => <option key={type}>{type}</option>)}
+                  {filterOptions.institutionTypes.map((type) => <option key={type}>{type}</option>)}
                 </select>
                 <select name="degree" className="focus-ring h-11 rounded-md border border-slate-200 px-3 text-sm">
                   <option value="">Degree Level</option>
-                  {degreeLevels.map((degree) => <option key={degree}>{degree}</option>)}
+                  {filterOptions.degreeLevels.map((degree) => <option key={degree}>{degree}</option>)}
                 </select>
                 <select name="field" className="focus-ring h-11 rounded-md border border-slate-200 px-3 text-sm">
                   <option value="">Field of Study</option>
-                  {fields.map((field) => <option key={field}>{field}</option>)}
+                  {filterOptions.fields.map((field) => <option key={field}>{field}</option>)}
                 </select>
               </div>
               <div className="mt-4 flex flex-col gap-3 sm:flex-row">

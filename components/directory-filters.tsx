@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { Search } from "lucide-react";
 import { institutionTypes, degreeLevels } from "@/lib/constants";
 import { Field, Input, Select } from "@/components/ui/field";
@@ -145,7 +146,19 @@ export function UniversityDirectory({ universities }: { universities: University
 }
 
 export function ProgramDirectory({ programs }: { programs: Program[] }) {
-  const [filters, setFilters] = useState({ q: "", region: "", state: "", city: "", university: "", type: "", degree: "", field: "", status: "", sort: "az" });
+  const searchParams = useSearchParams();
+  const [filters, setFilters] = useState(() => ({
+    q: searchParams.get("q") || "",
+    region: searchParams.get("region") || "",
+    state: searchParams.get("state") || "",
+    city: searchParams.get("city") || "",
+    university: searchParams.get("university") || "",
+    type: searchParams.get("type") || "",
+    degree: searchParams.get("degree") || "",
+    field: searchParams.get("field") || "",
+    status: searchParams.get("status") || "",
+    sort: searchParams.get("sort") || "az"
+  }));
   const [page, setPage] = useState(1);
   const states = uniq(programs.map((item) => item.university.state));
   const cities = uniq(programs.map((item) => item.university.city));
